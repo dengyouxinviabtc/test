@@ -1,0 +1,48 @@
+pipeline {
+    agent none
+    stages {
+        stage("获取git dev") {
+            agent {
+        	    label "node1"
+        	} 
+            steps {
+                echo 'This stage will be executed first.'
+                git 'https://github.com/laochiji/helloworld.git'
+                sh "pwd;ls"
+                git url: 'https://github.com/laochiji/helloworld.git', branch: 'dev'
+                sh "pwd;ls"
+            }
+        }
+        
+        stage("编译") {
+            agent {
+                docker {
+	                label "node1"
+                    image '172.25.113.23:5555/friendlyhello'
+                    args ''
+                }
+            }
+            steps {
+                sh 'python --version'
+                sh 'cd /app;pwd;ls'
+            }
+        }
+
+    }
+    post {
+      always {
+        // One or more steps need to be included within each condition's block.
+        echo "always"
+        // emailext body: '本次构建执行完成。两个参数分别是$p1,$p2 不知道结果如何，这只是执行完成的邮件', subject: '这是一个构建邮件', to: 'dengyouxin001@gmail.com'
+      }
+      success {
+        // One or more steps need to be included within each condition's block.
+        echo "success"
+      }
+      failure {
+        // One or more steps need to be included within each condition's block.
+        echo "failure"
+      }
+    }
+
+}
