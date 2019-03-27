@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+    stages {
+        stage('Non-Parallel Stage') {
+            steps {
+                echo 'This stage will be executed first.'
+                git 'https://github.com/laochiji/helloworld.git'
+                sh "pwd;ls"
+                
+                sh "git checkout dev ;pwd;ls"
+            }
+        }
+        stage('Parallel Stage') {
+            parallel {
+                stage('Branch A') {
+                    steps {
+                        echo "$p1"
+                    }
+                }
+                stage('Branch B') {
+                    steps {
+                        echo "$p1"
+                        build job: 'paramjob2', parameters: [string(name: 'p2', value: "$p2")]
+                    }
+                }
+            }
+        }
+    }
+    post {
+      always {
+        // One or more steps need to be included within each condition's block.
+        echo "always"
+        emailext body: '本次构建执行完成。两个参数分别是$p1,$p2 不知道结果如何，这只是执行完成的邮件', subject: '这是一个构建邮件', to: 'dengyouxin001@gmail.com'
+      }
+      success {
+        // One or more steps need to be included within each condition's block.
+        echo "success"
+      }
+      failure {
+        // One or more steps need to be included within each condition's block.
+        echo "failure"
+      }
+    }
+
+}
